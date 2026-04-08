@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
 import Peer from 'simple-peer';
@@ -6,6 +7,7 @@ import useAuth from '../hooks/useAuth';
 import Sidebar from '../components/Sidebar';
 
 const LiveInterview = () => {
+  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState('setup'); // setup, interview
