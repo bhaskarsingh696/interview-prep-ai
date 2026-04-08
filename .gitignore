@@ -1,0 +1,116 @@
+# Comprehensive .gitignore for Smart Interview Platform
+
+### NODE ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+
+### ENVIRONMENT ###
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+### BUILD ###
+/build
+/dist
+/.next
+out/
+.nuxt
+dist
+*.egg-info/
+.pytest_cache/
+htmlcov/
+
+### IDE ###
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+### LOGS ###
+logs
+*.log
+lerna-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+### TESTING ###
+coverage/
+.nyc_output/
+test-results/
+
+### TEMPORARY ###
+.cache/
+tmp/
+temp/
+*.tmp
+*.bak
+
+### OS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+*.deb
+*.rpm
+*.exe
+*.msi
+
+### UPLOADS ###
+uploads/
+*.pdf
+*.doc
+*.docx
+
+### GIT ###
+.git/
+
+### DATABASE ###
+*.sqlite
+*.sqlite3
+*.db
+
+### MISC ###
+.idea
+.vscode
+*.iml
+out/
+**/out/
+target/
+.gradle
+.idea
+*.iws
+*.iml
+*.ipr
+
+# Keep these important files
+!.gitkeep
+!.env.example
+
+### FRONTEND SPECIFIC ###
+# react
+.cache
+dist
+build
+storybook-static
+
+### BACKEND SPECIFIC ###
+# node
+node_modules
+npm-debug.log
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
