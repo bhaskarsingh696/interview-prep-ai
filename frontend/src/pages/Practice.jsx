@@ -10,6 +10,7 @@ const Practice = () => {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchProblems();
   }, [topic, difficulty]);

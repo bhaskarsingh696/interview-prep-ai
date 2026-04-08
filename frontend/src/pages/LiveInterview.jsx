@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
 import Peer from 'simple-peer';
@@ -25,7 +24,6 @@ const LiveInterview = () => {
   const localVideoRef = useRef();
   const streamRef = useRef();
   const peersRef = useRef([]);
-  const editorRef = useRef();
 
   const generateRoomId = () => {
     const id = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -33,6 +31,7 @@ const LiveInterview = () => {
     setInputRoomId(id);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const joinRoom = useCallback(async (roomToJoin) => {
     try {
       // Get camera and mic
