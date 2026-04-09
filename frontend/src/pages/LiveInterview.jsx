@@ -33,8 +33,25 @@ const LiveInterview = () => {
     setInputRoomId(id);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const joinRoom = useCallback(async (roomToJoin) => {
+    const createPeer = (to, from, stream) => {
+      const peer = new Peer({ initiator: true, trickle: false, stream });
+      peer.on('signal', (signal) => {
+        socketRef.current.emit('send-signal', {
+          to, signal, from, userName: user?.name
+        });
+      });
+      return peer;
+    };
+
+    const addPeer = (from, stream) => {
+      const peer = new Peer({ initiator: false, trickle: false, stream });
+      peer.on('signal', (signal) => {
+        socketRef.current.emit('return-signal', { to: from, signal });
+      });
+      return peer;
+    };
+
     try {
       // Get camera and mic
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -115,24 +132,6 @@ const LiveInterview = () => {
       console.error(err);
     }
   }, [user]);
-
-  const createPeer = (to, from, stream) => {
-    const peer = new Peer({ initiator: true, trickle: false, stream });
-    peer.on('signal', (signal) => {
-      socketRef.current.emit('send-signal', {
-        to, signal, from, userName: user?.name
-      });
-    });
-    return peer;
-  };
-
-  const addPeer = (from, stream) => {
-    const peer = new Peer({ initiator: false, trickle: false, stream });
-    peer.on('signal', (signal) => {
-      socketRef.current.emit('return-signal', { to: from, signal });
-    });
-    return peer;
-  };
 
   const handleCodeChange = (newCode) => {
     setCode(newCode);

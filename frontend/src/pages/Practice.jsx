@@ -10,22 +10,20 @@ const Practice = () => {
   const [topic, setTopic] = useState('');
   const [difficulty, setDifficulty] = useState('');
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    const fetchProblems = async () => {
+      setLoading(true);
+      try {
+        const data = await getProblems(topic, difficulty);
+        setProblems(data);
+      } catch (error) {
+        console.error('Error fetching problems:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchProblems();
   }, [topic, difficulty]);
-
-  const fetchProblems = async () => {
-    setLoading(true);
-    try {
-      const data = await getProblems(topic, difficulty);
-      setProblems(data);
-    } catch (error) {
-      console.error('Error fetching problems:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getDifficultyClass = (difficulty) => {
     if (difficulty === 'Easy') return 'badge-easy';
