@@ -74,6 +74,10 @@ const CodeEditor = () => {
       if (status === 'Accepted') {
         setSubmitResult('accepted');
         setOutput(result.output || '✅ All test cases passed!');
+        // ✅ FIX: After successful submission, redirect to dashboard after 2 seconds to see updated stats
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
       } else {
         setSubmitResult('wrong');
         setOutput(`❌ Error:\n${result.error}`);

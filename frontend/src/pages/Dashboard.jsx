@@ -1,11 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import Sidebar from '../components/Sidebar';
+import { getMyAnalytics } from '../services/analyticsService';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    problemsSolved: 0,
+    mockInterviews: 0,
+    accuracyRate: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+    // ✅ Refresh stats when window comes into focus
+    window.addEventListener('focus', fetchStats);
+    return () => window.removeEventListener('focus', fetchStats);
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const analyticsData = await getMyAnalytics();
+      setStats({
+        problemsSolved: analyticsData.acceptedSubmissions || 0,
+        mockInterviews: analyticsData.totalMockInterviews || 0,
+        accuracyRate: analyticsData.accuracy || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const cards = [
     {
@@ -79,9 +108,9 @@ const Dashboard = () => {
         {/* Stats Row */}
         <div className="grid grid-cols-3 gap-4 mb-10">
           {[
-            { label: 'Problems Solved', value: '—', icon: '◈' },
-            { label: 'Mock Interviews', value: '—', icon: '◉' },
-            { label: 'Accuracy Rate', value: '—', icon: '▤' },
+            { label: 'Problems Solved', value: loading ? '...' : stats.problemsSolved, icon: '◈' },
+            { label: 'Mock Interviews', value: loading ? '...' : stats.mockInterviews, icon: '◉' },
+            { label: 'Accuracy Rate', value: loading ? '...' : `${stats.accuracyRate}%`, icon: '▤' },
           ].map((stat, i) => (
             <div key={i} className="card flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg"

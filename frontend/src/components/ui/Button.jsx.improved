@@ -1,0 +1,151 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import { Loader2, ArrowRight } from 'lucide-react';
+
+/**
+ * ✅ IMPROVED Button Component
+ * - Multiple variants (primary, secondary, danger, ghost, outline)
+ * - Sizes support (sm, md, lg)
+ * - Loading state with spinner
+ * - Icon support
+ * - Disabled state
+ * - Full accessibility support
+ */
+
+const Button = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  disabled = false,
+  icon: Icon,
+  iconPosition = 'left',
+  fullWidth = false,
+  type = 'button',
+  onClick,
+  className = '',
+  ...props
+}) => {
+  // ✅ Size classes
+  const sizeClasses = {
+    'sm': 'px-3 py-1.5 text-xs font-medium rounded-lg gap-1.5',
+    'md': 'px-4 py-2.5 text-sm font-medium rounded-lg gap-2',
+    'lg': 'px-6 py-3 text-base font-semibold rounded-lg gap-2.5',
+  };
+
+  // ✅ Variant classes (modern, professional look)
+  const variantClasses = {
+    'primary': `
+      bg-gradient-to-r from-primary-500 to-primary-600
+      text-white
+      shadow-md hover:shadow-lg
+      hover:-translate-y-0.5
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+      focus-ring
+      transition-all duration-200 ease-smooth
+    `,
+    'secondary': `
+      bg-slate-800 hover:bg-slate-700
+      border border-slate-700 hover:border-slate-600
+      text-slate-100
+      shadow-sm hover:shadow-md
+      disabled:opacity-50 disabled:cursor-not-allowed
+      focus-ring
+      transition-all duration-200 ease-smooth
+    `,
+    'danger': `
+      bg-error-600 hover:bg-error-700
+      text-white
+      shadow-md hover:shadow-lg
+      hover:-translate-y-0.5
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+      focus-ring
+      transition-all duration-200 ease-smooth
+    `,
+    'success': `
+      bg-success-600 hover:bg-success-700
+      text-white
+      shadow-md hover:shadow-lg
+      hover:-translate-y-0.5
+      disabled:opacity-50 disabled:cursor-not-allowed
+      focus-ring
+      transition-all duration-200 ease-smooth
+    `,
+    'ghost': `
+      bg-transparent hover:bg-slate-800
+      text-slate-100 hover:text-white
+      transition-all duration-200
+      disabled:opacity-50 disabled:cursor-not-allowed
+      focus-ring
+    `,
+    'outline': `
+      bg-transparent
+      border border-primary-500 hover:border-primary-600
+      text-primary-400 hover:text-primary-300
+      transition-all duration-200
+      disabled:opacity-50 disabled:cursor-not-allowed
+      focus-ring
+    `,
+  };
+
+  return (
+    <button
+      type={type}
+      disabled={loading || disabled}
+      onClick={onClick}
+      className={`
+        ${sizeClasses[size]}
+        ${variantClasses[variant]}
+        ${fullWidth ? 'w-full' : ''}
+        flex items-center justify-center
+        nowrap
+        font-ibm
+        ${className}
+      `}
+      aria-busy={loading}
+      {...props}
+    >
+      {/* Loading spinner */}
+      {loading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          {typeof children === 'string' && <span>{children}</span>}
+        </>
+      ) : (
+        <>
+          {Icon && iconPosition === 'left' && (
+            <Icon className={`w-${size === 'sm' ? 3 : size === 'md' ? 4 : 5} h-${size === 'sm' ? 3 : size === 'md' ? 4 : 5}`} />
+          )}
+          <span>{children}</span>
+          {Icon && iconPosition === 'right' && (
+            <Icon className={`w-${size === 'sm' ? 3 : size === 'md' ? 4 : 5} h-${size === 'sm' ? 3 : size === 'md' ? 4 : 5}`} />
+          )}
+        </>
+      )}
+    </button>
+  );
+};
+
+Button.propTypes = {
+  children: PropTypes.node.isRequired,
+  variant: PropTypes.oneOf(['primary', 'secondary', 'danger', 'success', 'ghost', 'outline']),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  loading: PropTypes.bool,
+  disabled: PropTypes.bool,
+  icon: PropTypes.elementType,
+  iconPosition: PropTypes.oneOf(['left', 'right']),
+  fullWidth: PropTypes.bool,
+  type: PropTypes.oneOf(['button', 'submit', 'reset']),
+  onClick: PropTypes.func,
+  className: PropTypes.string,
+};
+
+export default Button;
+
+// ✅ Usage Examples:
+// <Button>Default Button</Button>
+// <Button variant="primary" size="lg">Big Primary Button</Button>
+// <Button variant="secondary" icon={Settings}>Settings</Button>
+// <Button loading>Please wait...</Button>
+// <Button disabled>Can't click me</Button>
+// <Button variant="danger" icon={Trash2} iconPosition="right">Delete</Button>

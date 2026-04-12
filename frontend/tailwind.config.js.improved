@@ -1,0 +1,213 @@
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {
+      // ✅ IMPROVED: Extended color palette
+      colors: {
+        // Neutrals - Better contrast
+        'slate': {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
+        },
+        
+        // Primary - Cool Blue (Professional)
+        'primary': {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#3b82f6',  // Main brand
+          600: '#2563eb',
+          700: '#1d4ed8',
+          800: '#1e40af',
+          900: '#1e3a8a',
+        },
+        
+        // Secondary - Purple (Complementary)
+        'secondary': {
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',  // Secondary brand
+          600: '#9333ea',
+          700: '#7e22ce',
+          800: '#6b21a8',
+          900: '#581c87',
+        },
+        
+        // Success - Refined Green
+        'success': {
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          200: '#bbf7d0',
+          300: '#86efac',
+          400: '#4ade80',
+          500: '#22c55e',
+          600: '#16a34a',
+          700: '#15803d',
+          800: '#166534',
+          900: '#145231',
+        },
+        
+        // Warning - Orange
+        'warning': {
+          50: '#fff7ed',
+          100: '#ffedd5',
+          300: '#fed7aa',
+          400: '#fb923c',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+        },
+        
+        // Error/Danger - Red
+        'error': {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#ef4444',
+          600: '#dc2626',
+          700: '#b91c1c',
+          800: '#991b1b',
+        },
+        
+        // Info - Cyan
+        'info': {
+          50: '#ecf0ff',
+          100: '#cffafe',
+          300: '#a5f3fc',
+          400: '#06b6d4',
+          500: '#0891b2',
+          600: '#0e7490',
+        },
+        
+        // Accent - Keep neon green (use sparingly)
+        'accent': '#00ff88',
+        'accent-dark': '#00cc6f',
+        
+        // Background colors (dark theme)
+        'bg': {
+          primary: '#0f172a',    // #020617 (darkest)
+          secondary: '#1e293b',   // Main background
+          tertiary: '#334155',    // Cards, hover
+          overlay: '#0f172a',
+        },
+      },
+      
+      // ✅ Font family improvements
+      fontFamily: {
+        'syne': ['Syne', 'sans-serif'],
+        'ibm': ['IBM Plex Sans', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'monospace'],
+      },
+      
+      // ✅ New spacing additions
+      spacing: {
+        '128': '32rem',
+        '144': '36rem',
+      },
+      
+      // ✅ Border radius system
+      borderRadius: {
+        'xs': '0.25rem',
+        'sm': '0.375rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
+        'xl': '1rem',
+        '2xl': '1.5rem',
+      },
+      
+      // ✅ Better shadow system (elevation-based)
+      boxShadow: {
+        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'sm': '0 2px 4px 0 rgba(0, 0, 0, 0.1)',
+        'md': '0 4px 12px 0 rgba(0, 0, 0, 0.15)',
+        'lg': '0 8px 24px 0 rgba(0, 0, 0, 0.2)',
+        'xl': '0 12px 32px 0 rgba(0, 0, 0, 0.25)',
+        'glow-primary': '0 0 20px rgba(59, 130, 246, 0.3)',
+        'glow-secondary': '0 0 20px rgba(168, 85, 247, 0.3)',
+        'glow-accent': '0 0 20px rgba(0, 255, 136, 0.3)',
+      },
+      
+      // ✅ Animation improvements
+      animation: {
+        'spin': 'spin 0.8s linear infinite',
+        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'bounce': 'bounce 1s infinite',
+        'glow': 'glow 2s ease-in-out infinite',
+      },
+      
+      keyframes: {
+        'glow': {
+          '0%, 100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)' },
+          '50%': { boxShadow: '0 0 30px rgba(59, 130, 246, 0.5)' },
+        },
+      },
+      
+      // ✅ Transition improvements
+      transitionDuration: {
+        '200': '200ms',
+        '300': '300ms',
+        '400': '400ms',
+      },
+      
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+    },
+  },
+  
+  plugins: [
+    // ✅ Custom utilities plugin
+    function({ addUtilities }) {
+      addUtilities({
+        // Glassmorphism
+        '.glass': {
+          background: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(10px)',
+          '@supports (backdrop-filter: blur(10px))': {
+            background: 'rgba(15, 23, 42, 0.5)',
+          },
+        },
+        '.glass-sm': {
+          background: 'rgba(15, 23, 42, 0.9)',
+          backdropFilter: 'blur(5px)',
+        },
+        
+        // Gradient backgrounds
+        '.gradient-primary': {
+          backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+        },
+        '.gradient-secondary': {
+          backgroundImage: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)',
+        },
+        '.gradient-text': {
+          backgroundImage: 'linear-gradient(135deg, #3b82f6 0%, #a855f7 100%)',
+          '@apply bg-clip-text text-transparent': {},
+        },
+        
+        // Focus states
+        '.focus-ring': {
+          '@apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-900': {},
+        },
+      });
+    },
+  ],
+}

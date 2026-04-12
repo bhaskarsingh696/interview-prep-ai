@@ -16,9 +16,13 @@ const Analytics = () => {
 
   useEffect(() => {
     fetchData();
+    // ✅ FIX: Refresh analytics when window comes into focus
+    window.addEventListener('focus', fetchData);
+    return () => window.removeEventListener('focus', fetchData);
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [analyticsData, interviewsData] = await Promise.all([
         getMyAnalytics(),
@@ -60,9 +64,26 @@ const Analytics = () => {
       <div className="page-wrapper flex-1">
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="font-syne font-bold text-3xl text-white mb-2">My Analytics</h1>
-          <p style={{ color: '#8892a4' }}>Track your progress and performance</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="font-syne font-bold text-3xl text-white mb-2">My Analytics</h1>
+            <p style={{ color: '#8892a4' }}>Track your progress and performance</p>
+          </div>
+          {/* ✅ FIX: Add refresh button */}
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="px-4 py-2 rounded-lg transition-all"
+            style={{
+              backgroundColor: '#00ff88',
+              color: '#0a0e1a',
+              fontWeight: '600',
+              opacity: loading ? 0.6 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {loading ? '⏳ Refreshing...' : '🔄 Refresh'}
+          </button>
         </div>
 
         {/* Stats Cards */}

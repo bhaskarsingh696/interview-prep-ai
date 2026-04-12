@@ -1,0 +1,276 @@
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+
+/**
+ * ✅ IMPROVED Input Component
+ * - Label support
+ * - Error states with messages
+ * - Helper text
+ * - Password visibility toggle
+ * - Character counter
+ * - Loading state
+ * - Full accessibility
+ */
+
+export const Input = React.forwardRef(({
+  label,
+  error,
+  helperText,
+  type = 'text',
+  maxLength,
+  showCharCount = false,
+  required = false,
+  icon: Icon,
+  disabled = false,
+  className = '',
+  ...props
+}, ref) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [charCount, setCharCount] = useState(0);
+
+  const handleChange = (e) => {
+    setCharCount(e.target.value.length);
+    props.onChange?.(e);
+  };
+
+  const inputType = type === 'password' && showPassword ? 'text' : type;
+
+  return (
+    <div className="w-full">
+      {/* Label */}
+      {label && (
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          {label}
+          {required && <span className="text-error-500 ml-1">*</span>}
+        </label>
+      )}
+
+      {/* Input Wrapper */}
+      <div className="relative">
+        {/* Left Icon */}
+        {Icon && (
+          <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 pointer-events-none" />
+        )}
+
+        {/* Input Field */}
+        <input
+          ref={ref}
+          type={inputType}
+          disabled={disabled}
+          maxLength={maxLength}
+          onChange={handleChange}
+          className={`
+            w-full px-4 py-2.5 text-sm font-medium
+            rounded-lg transition-all duration-200
+            bg-slate-800 hover:bg-slate-700
+            border border-slate-700 hover:border-slate-600
+            text-slate-100 placeholder-slate-500
+            focus:outline-none focus:border-primary-500
+            focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-0
+            disabled:opacity-50 disabled:cursor-not-allowed
+            ${Icon ? 'pl-10' : ''}
+            ${error ? 'border-error-500 focus:border-error-500 focus:ring-error-500/20' : ''}
+            ${className}
+          `}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${props.id}-error` : undefined}
+          {...props}
+        />
+
+        {/* Password Toggle */}
+        {type === 'password' && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition"
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div
+          id={`${props.id}-error`}
+          className="flex items-center gap-2 mt-2 text-error-400 text-xs font-medium"
+          role="alert"
+        >
+          <AlertCircle size={14} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Helper Text */}
+      {helperText && !error && (
+        <p className="mt-2 text-xs text-slate-500">{helperText}</p>
+      )}
+
+      {/* Character Count */}
+      {showCharCount && maxLength && (
+        <div className="mt-2 text-xs text-slate-500 text-right">
+          {charCount} / {maxLength}
+        </div>
+      )}
+    </div>
+  );
+});
+
+Input.displayName = 'Input';
+
+Input.propTypes = {
+  label: PropTypes.string,
+  error: PropTypes.string,
+  helperText: PropTypes.string,
+  type: PropTypes.string,
+  maxLength: PropTypes.number,
+  showCharCount: PropTypes.bool,
+  required: PropTypes.bool,
+  icon: PropTypes.elementType,
+  disabled: PropTypes.bool,
+  className: PropTypes.string,
+};
+
+// ✅ FormGroup Component (Label + Input combination)
+export const FormGroup = ({
+  id,
+  label,
+  type = 'text',
+  placeholder,
+  value,
+  onChange,
+  error,
+  helperText,
+  required = false,
+  icon: Icon,
+  ...props
+}) => {
+  return (
+    <div className="w-full">
+      <Input
+        id={id}
+        label={label}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        error={error}
+        helperText={helperText}
+        required={required}
+        icon={Icon}
+        {...props}
+      />
+    </div>
+  );
+};
+
+FormGroup.propTypes = {
+  id: PropTypes.string,
+  label: PropTypes.string.isRequired,
+  type: PropTypes.string,
+  placeholder: PropTypes.string,
+  value: PropTypes.string,
+  onChange: PropTypes.func,
+  error: PropTypes.string,
+  helperText: PropTypes.string,
+  required: PropTypes.bool,
+  icon: PropTypes.elementType,
+};
+
+// ✅ Textarea Component
+export const Textarea = React.forwardRef(({
+  label,
+  error,
+  helperText,
+  maxLength,
+  showCharCount = false,
+  required = false,
+  rows = 4,
+  className = '',
+  ...props
+}, ref) => {
+  const [charCount, setCharCount] = useState(0);
+
+  const handleChange = (e) => {
+    setCharCount(e.target.value.length);
+    props.onChange?.(e);
+  };
+
+  return (
+    <div className="w-full">
+      {label && (
+        <label className="block text-sm font-medium text-slate-300 mb-2">
+          {label}
+          {required && <span className="text-error-500 ml-1">*</span>}
+        </label>
+      )}
+
+      <textarea
+        ref={ref}
+        rows={rows}
+        maxLength={maxLength}
+        onChange={handleChange}
+        className={`
+          w-full px-4 py-2.5 text-sm font-medium
+          rounded-lg transition-all duration-200
+          bg-slate-800 hover:bg-slate-700
+          border border-slate-700 hover:border-slate-600
+          text-slate-100 placeholder-slate-500
+          focus:outline-none focus:border-primary-500
+          focus:ring-2 focus:ring-primary-500/20
+          disabled:opacity-50 disabled:cursor-not-allowed
+          resize-vertical
+          ${error ? 'border-error-500 focus:ring-error-500/20' : ''}
+          ${className}
+        `}
+        aria-invalid={!!error}
+        {...props}
+      />
+
+      {error && (
+        <div className="flex items-center gap-2 mt-2 text-error-400 text-xs font-medium" role="alert">
+          <AlertCircle size={14} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {helperText && !error && (
+        <p className="mt-2 text-xs text-slate-500">{helperText}</p>
+      )}
+
+      {showCharCount && maxLength && (
+        <div className="mt-2 text-xs text-slate-500 text-right">
+          {charCount} / {maxLength}
+        </div>
+      )}
+    </div>
+  );
+});
+
+Textarea.displayName = 'Textarea';
+
+// ✅ Usage Examples:
+// <Input
+//   type="email"
+//   label="Email Address"
+//   placeholder="john@example.com"
+//   helperText="We'll never share your email"
+// />
+//
+// <Input
+//   type="password"
+//   label="Password"
+//   error="Password must be at least 8 characters"
+// />
+//
+// <Textarea
+//   label="Comments"
+//   placeholder="Leave your thoughts..."
+//   rows={6}
+//   maxLength={500}
+//   showCharCount={true}
+// />
+
+export default Input;
