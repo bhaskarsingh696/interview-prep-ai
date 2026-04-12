@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Sidebar from '../components/Sidebar';
 import { getMyAnalytics } from '../services/analyticsService';
 import { getMyInterviews } from '../services/aiService';
-import Sidebar from '../components/Sidebar';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer
-} from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const COLORS = ['#00ff88', '#4f9cf9', '#a855f7', '#fbbf24', '#f87171'];
 
@@ -13,10 +10,10 @@ const Analytics = () => {
   const [analytics, setAnalytics] = useState(null);
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchData();
-    // ✅ FIX: Refresh analytics when window comes into focus
     window.addEventListener('focus', fetchData);
     return () => window.removeEventListener('focus', fetchData);
   }, []);
@@ -49,288 +46,442 @@ const Analytics = () => {
     return '#f87171';
   };
 
-  if (loading) return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#0a0e1a' }}>
+  // Skeleton loader component
+  const ChartSkeleton = ({ height = 300 }) => (
+    <div className="animate-pulse space-y-3 p-4">
+      <div className="h-12 bg-slate-700 rounded"></div>
+      <div className="space-y-2">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-6 bg-slate-700 rounded w-full"></div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Tab button component
+  const TabButton = ({ id, label, active, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 ${
+        active
+          ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+          : 'text-slate-400 border border-slate-700 hover:border-slate-600'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  if (loading && !analytics) return (
+    <div className="flex min-h-screen bg-slate-950">
       <Sidebar />
-      <div className="page-wrapper flex-1 flex items-center justify-center">
-        <p style={{ color: '#8892a4' }}>Loading analytics...</p>
+      <div className="flex-1 md:ml-64 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">●</div>
+          <p className="text-slate-400">Loading your analytics...</p>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: '#0a0e1a' }}>
+    <div className="flex min-h-screen bg-slate-950">
       <Sidebar />
-      <div className="page-wrapper flex-1">
 
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="font-syne font-bold text-3xl text-white mb-2">My Analytics</h1>
-            <p style={{ color: '#8892a4' }}>Track your progress and performance</p>
-          </div>
-          {/* ✅ FIX: Add refresh button */}
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="px-4 py-2 rounded-lg transition-all"
-            style={{
-              backgroundColor: '#00ff88',
-              color: '#0a0e1a',
-              fontWeight: '600',
-              opacity: loading ? 0.6 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {loading ? '⏳ Refreshing...' : '🔄 Refresh'}
-          </button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          {[
-            { label: 'Total Submissions', value: analytics?.totalSubmissions || 0, color: '#4f9cf9' },
-            { label: 'Problems Accepted', value: analytics?.acceptedSubmissions || 0, color: '#4ade80' },
-            { label: 'Accuracy Rate', value: `${analytics?.accuracy || 0}%`, color: '#00ff88' },
-            { label: 'Mock Interviews', value: analytics?.totalMockInterviews || 0, color: '#a855f7' },
-          ].map((stat, i) => (
-            <div key={i} className="card text-center">
-              <div className="font-syne font-bold text-3xl mb-2" style={{ color: stat.color }}>
-                {stat.value}
+      <div className="flex-1 md:ml-64 transition-all duration-300">
+        <div className="p-4 md:p-6 lg:p-8 min-h-screen">
+          {/* Header Section */}
+          <div className="mb-8 md:mb-12">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+              <div>
+                <p className="text-slate-500 text-sm font-medium mb-2">Performance Insights</p>
+                <h1 className="font-syne font-bold text-3xl md:text-4xl text-white">Your Analytics</h1>
               </div>
-              <div style={{ color: '#8892a4' }} className="text-xs">{stat.label}</div>
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="px-4 py-2 rounded-lg border border-slate-700 hover:border-green-500/50 text-slate-300 hover:text-green-400 transition-all duration-300 disabled:opacity-50 self-start md:self-auto"
+              >
+                {loading ? '⟳ Refreshing...' : '↻ Refresh'}
+              </button>
             </div>
-          ))}
-        </div>
 
-        {/* Charts Row 1 */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-
-          {/* Daily Activity Bar Chart */}
-          <div className="card">
-            <h2 className="font-syne font-bold text-lg text-white mb-4">
-              📅 Daily Activity (Last 7 Days)
-            </h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={analytics?.last7Days || []}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
-                <XAxis dataKey="day" stroke="#8892a4" fontSize={12} />
-                <YAxis stroke="#8892a4" fontSize={12} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#141b2d', border: '1px solid #1e2d45', borderRadius: '8px' }}
-                  labelStyle={{ color: '#fff' }}
-                />
-                <Bar dataKey="submissions" fill="#00ff88" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* Tab Navigation */}
+            <div className="flex gap-2 flex-wrap">
+              <TabButton
+                id="overview"
+                label="Overview"
+                active={activeTab === 'overview'}
+                onClick={() => setActiveTab('overview')}
+              />
+              <TabButton
+                id="topics"
+                label="By Topic"
+                active={activeTab === 'topics'}
+                onClick={() => setActiveTab('topics')}
+              />
+              <TabButton
+                id="difficulty"
+                label="By Difficulty"
+                active={activeTab === 'difficulty'}
+                onClick={() => setActiveTab('difficulty')}
+              />
+              <TabButton
+                id="interviews"
+                label="Interviews"
+                active={activeTab === 'interviews'}
+                onClick={() => setActiveTab('interviews')}
+              />
+            </div>
           </div>
 
-          {/* Topic Distribution Pie Chart */}
-          <div className="card">
-            <h2 className="font-syne font-bold text-lg text-white mb-4">
-              🎯 Topic Distribution
-            </h2>
-            {analytics?.topicDistribution?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={analytics.topicDistribution}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    labelLine={{ stroke: '#8892a4' }}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            {[
+              { 
+                label: 'Total Submissions', 
+                value: analytics?.totalSubmissions || 0, 
+                icon: '◉', 
+                color: '#4f9cf9', 
+                bgColor: 'rgba(79,156,249,0.1)',
+                trend: 'Active'
+              },
+              { 
+                label: 'Problems Accepted', 
+                value: analytics?.acceptedSubmissions || 0, 
+                icon: '◈', 
+                color: '#4ade80', 
+                bgColor: 'rgba(74,222,128,0.1)',
+                trend: '+2 this week'
+              },
+              { 
+                label: 'Accuracy Rate', 
+                value: `${analytics?.accuracy || 0}%`, 
+                icon: '▤', 
+                color: '#00ff88', 
+                bgColor: 'rgba(0,255,136,0.1)',
+                trend: analytics?.accuracy > 70 ? '🔥 Great!' : 'Improving'
+              },
+              { 
+                label: 'Mock Interviews', 
+                value: analytics?.totalMockInterviews || 0, 
+                icon: '◬', 
+                color: '#a855f7', 
+                bgColor: 'rgba(168,85,247,0.1)',
+                trend: 'Practice more'
+              },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="p-5 rounded-xl border border-slate-700 hover:border-slate-600 transition-all duration-300 group"
+                style={{
+                  background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+                  boxShadow: '0 0 0 1px rgba(148, 163, 184, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)'
+                }}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div
+                    className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform"
+                    style={{ backgroundColor: stat.bgColor, color: stat.color }}
                   >
-                    {analytics.topicDistribution.map((entry, index) => (
-                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#141b2d', border: '1px solid #1e2d45', borderRadius: '8px' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-48">
-                <p style={{ color: '#8892a4' }} className="text-sm">No data yet! Start practicing 🚀</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Charts Row 2 */}
-        <div className="grid grid-cols-2 gap-4 mb-6">
-
-          {/* Mock Interview Trend */}
-          <div className="card">
-            <h2 className="font-syne font-bold text-lg text-white mb-4">
-              🤖 Mock Interview Score Trend
-            </h2>
-            {analytics?.mockInterviewTrend?.length > 0 ? (
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={analytics.mockInterviewTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
-                  <XAxis dataKey="name" stroke="#8892a4" fontSize={12} />
-                  <YAxis stroke="#8892a4" fontSize={12} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#141b2d', border: '1px solid #1e2d45', borderRadius: '8px' }}
-                    labelStyle={{ color: '#fff' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#4f9cf9"
-                    strokeWidth={2}
-                    dot={{ fill: '#4f9cf9', r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-48">
-                <p style={{ color: '#8892a4' }} className="text-sm">No interviews yet! Try AI Mock Interview 🤖</p>
-              </div>
-            )}
-          </div>
-
-          {/* Difficulty Breakdown */}
-          <div className="card">
-            <h2 className="font-syne font-bold text-lg text-white mb-4">
-              🎯 Problems by Difficulty
-            </h2>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={[
-                { name: 'Easy', solved: analytics?.easySolved || 0, fill: '#4ade80' },
-                { name: 'Medium', solved: analytics?.mediumSolved || 0, fill: '#fbbf24' },
-                { name: 'Hard', solved: analytics?.hardSolved || 0, fill: '#f87171' }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e2d45" />
-                <XAxis dataKey="name" stroke="#8892a4" fontSize={12} />
-                <YAxis stroke="#8892a4" fontSize={12} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#141b2d', border: '1px solid #1e2d45', borderRadius: '8px' }}
-                />
-                <Bar dataKey="solved" radius={[4, 4, 0, 0]}>
-                  {[
-                    { fill: '#4ade80' },
-                    { fill: '#fbbf24' },
-                    { fill: '#f87171' }
-                  ].map((entry, index) => (
-                    <Cell key={index} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Suggestions */}
-        <div className="card mb-6"
-          style={{ borderColor: 'rgba(0,255,136,0.2)', backgroundColor: 'rgba(0,255,136,0.03)' }}>
-          <h2 className="font-syne font-bold text-lg text-white mb-4">
-            💡 Personalized Suggestions
-          </h2>
-          <div className="flex flex-col gap-2">
-            {analytics?.suggestions?.map((suggestion, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <span style={{ color: '#00ff88' }}>▸</span>
-                <p className="text-sm" style={{ color: '#cbd5e1' }}>{suggestion}</p>
+                    {stat.icon}
+                  </div>
+                  <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-700/50 text-slate-400">
+                    {stat.trend}
+                  </span>
+                </div>
+                <div className="mb-2">
+                  <div className="text-2xl md:text-3xl font-bold text-white">
+                    {loading ? '—' : stat.value}
+                  </div>
+                </div>
+                <p className="text-slate-400 text-sm">{stat.label}</p>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Weak Topics */}
-        <div className="card mb-6">
-          <h2 className="font-syne font-bold text-lg text-white mb-4">⚠️ Weak Topics</h2>
-          {analytics?.weakTopics?.length === 0 ? (
-            <p style={{ color: '#8892a4' }} className="text-center py-4">No weak topics yet! 💪</p>
-          ) : (
-            analytics?.weakTopics?.map((topic, i) => (
-              <div key={i} className="flex items-center gap-4 mb-3">
-                <span className="text-sm font-semibold text-white w-16">{topic.topic}</span>
-                <div className="flex-1 rounded-full overflow-hidden" style={{ height: '8px', backgroundColor: '#1e2d45' }}>
-                  <div className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${topic.accuracy}%`, backgroundColor: topic.accuracy < 50 ? '#ef4444' : '#f59e0b' }} />
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg md:text-xl font-syne font-bold text-white mb-4">Daily Activity (Last 7 Days)</h2>
+                <div className="p-6 rounded-xl border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                  {loading ? (
+                    <ChartSkeleton />
+                  ) : analytics?.last7Days && analytics?.last7Days.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analytics.last7Days}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="day" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                          labelStyle={{ color: '#e2e8f0' }}
+                        />
+                        <Bar dataKey="submissions" fill="#00ff88" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-64 flex items-center justify-center text-slate-400">
+                      No data available yet. Keep practicing!
+                    </div>
+                  )}
                 </div>
-                <span className="text-sm font-semibold text-white w-10 text-right">{topic.accuracy}%</span>
               </div>
-            ))
-          )}
-        </div>
 
-        {/* Mock Interview History */}
-        <div className="card mb-6 p-0 overflow-hidden">
-          <div className="p-6 pb-0">
-            <h2 className="font-syne font-bold text-lg text-white mb-4">🤖 Mock Interview History</h2>
-          </div>
-          {interviews.length === 0 ? (
-            <p style={{ color: '#8892a4' }} className="text-center py-8">No interviews yet! 🚀</p>
-          ) : (
-            <table className="w-full mt-2">
-              <thead>
-                <tr style={{ backgroundColor: '#0d1220' }}>
-                  <th className="table-header">Topic</th>
-                  <th className="table-header">Difficulty</th>
-                  <th className="table-header">Score</th>
-                  <th className="table-header">Percentage</th>
-                  <th className="table-header">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {interviews.map((interview, i) => (
-                  <tr key={i} className="table-row">
-                    <td className="table-cell font-medium text-white">{interview.topic}</td>
-                    <td className="table-cell"><span className="topic-badge">{interview.difficulty}</span></td>
-                    <td className="table-cell">{interview.totalScore}/{interview.maxScore}</td>
-                    <td className="table-cell">
-                      <span className="font-bold" style={{ color: getScoreColor(interview.percentage) }}>
-                        {interview.percentage}%
-                      </span>
-                    </td>
-                    <td className="table-cell">{new Date(interview.createdAt).toLocaleDateString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h2 className="text-lg md:text-xl font-syne font-bold text-white mb-4">Topic Distribution</h2>
+                  <div className="p-6 rounded-xl border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                    {loading ? (
+                      <ChartSkeleton />
+                    ) : analytics?.topicDistribution && analytics?.topicDistribution.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={analytics.topicDistribution}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {analytics.topicDistribution.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                            labelStyle={{ color: '#e2e8f0' }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-slate-400">
+                        No data available yet
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-        {/* Recent Submissions */}
-        <div className="card p-0 overflow-hidden">
-          <div className="p-6 pb-0">
-            <h2 className="font-syne font-bold text-lg text-white mb-4">📋 Recent Submissions</h2>
-          </div>
-          {analytics?.recentSubmissions?.length === 0 ? (
-            <p style={{ color: '#8892a4' }} className="text-center py-8">No submissions yet! 🚀</p>
-          ) : (
-            <table className="w-full mt-2">
-              <thead>
-                <tr style={{ backgroundColor: '#0d1220' }}>
-                  <th className="table-header">Problem</th>
-                  <th className="table-header">Topic</th>
-                  <th className="table-header">Language</th>
-                  <th className="table-header">Status</th>
-                  <th className="table-header">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics?.recentSubmissions?.map((sub, i) => (
-                  <tr key={i} className="table-row">
-                    <td className="table-cell font-medium text-white">{sub.problem?.title || 'N/A'}</td>
-                    <td className="table-cell"><span className="topic-badge">{sub.problem?.topic}</span></td>
-                    <td className="table-cell">{sub.language}</td>
-                    <td className="table-cell">
-                      <span className="font-bold text-sm" style={{ color: getStatusColor(sub.status) }}>
-                        {sub.status}
-                      </span>
-                    </td>
-                    <td className="table-cell">{sub.timeTaken}s</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                <div>
+                  <h2 className="text-lg md:text-xl font-syne font-bold text-white mb-4">Problems by Difficulty</h2>
+                  <div className="p-6 rounded-xl border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                    {loading ? (
+                      <ChartSkeleton />
+                    ) : (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={[
+                          { name: 'Easy', solved: analytics?.easySolved || 0, fill: '#4ade80' },
+                          { name: 'Medium', solved: analytics?.mediumSolved || 0, fill: '#fbbf24' },
+                          { name: 'Hard', solved: analytics?.hardSolved || 0, fill: '#f87171' }
+                        ]}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis dataKey="name" stroke="#94a3b8" />
+                          <YAxis stroke="#94a3b8" />
+                          <Tooltip
+                            contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                            labelStyle={{ color: '#e2e8f0' }}
+                          />
+                          <Bar dataKey="solved" radius={[8, 8, 0, 0]}>
+                            {[
+                              { fill: '#4ade80' },
+                              { fill: '#fbbf24' },
+                              { fill: '#f87171' }
+                            ].map((entry, index) => (
+                              <Cell key={index} fill={entry.fill} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
+
+          {/* Weak Topics Section */}
+          {activeTab === 'topics' && (
+            <div>
+              <h2 className="text-lg md:text-xl font-syne font-bold text-white mb-4">Topic Performance</h2>
+              <div className="space-y-3">
+                {analytics?.weakTopics && analytics?.weakTopics.length > 0 ? (
+                  analytics?.weakTopics?.map((topic, i) => (
+                    <div key={i} className="p-4 rounded-lg border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="font-semibold text-white capitalize">{topic.topic}</span>
+                        <span className="text-lg font-bold" style={{ color: topic.accuracy >= 70 ? '#4ade80' : topic.accuracy >= 50 ? '#fbbf24' : '#f87171' }}>
+                          {topic.accuracy}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-3">
+                        <div
+                          className="h-3 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${topic.accuracy}%`,
+                            backgroundColor: topic.accuracy >= 70 ? '#4ade80' : topic.accuracy >= 50 ? '#fbbf24' : '#f87171',
+                          }}
+                        ></div>
+                      </div>
+                      {topic.accuracy < 60 && (
+                        <p className="text-xs text-slate-400 mt-2">⚠️ Needs improvement - try solving more problems in this topic</p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center rounded-lg border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                    <p className="text-slate-400">No weak topics yet! Keep practicing 💪</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Difficulty Tab */}
+          {activeTab === 'difficulty' && (
+            <div>
+              <h2 className="text-lg md:text-xl font-syne font-bold text-white mb-4">Difficulty Breakdown</h2>
+              <div className="p-6 rounded-xl border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                {loading ? (
+                  <ChartSkeleton height={400} />
+                ) : (
+                  <ResponsiveContainer width="100%" height={400}>
+                    <BarChart data={[
+                      { name: 'Easy', solved: analytics?.easySolved || 0, fill: '#4ade80' },
+                      { name: 'Medium', solved: analytics?.mediumSolved || 0, fill: '#fbbf24' },
+                      { name: 'Hard', solved: analytics?.hardSolved || 0, fill: '#f87171' }
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis dataKey="name" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                        labelStyle={{ color: '#e2e8f0' }}
+                      />
+                      <Bar dataKey="solved" radius={[8, 8, 0, 0]}>
+                        {[
+                          { fill: '#4ade80' },
+                          { fill: '#fbbf24' },
+                          { fill: '#f87171' }
+                        ].map((entry, index) => (
+                          <Cell key={index} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Mock Interviews Tab */}
+          {activeTab === 'interviews' && (
+            <div>
+              <h2 className="text-lg md:text-xl font-syne font-bold text-white mb-6">Mock Interview History</h2>
+              {analytics?.mockInterviewTrend && analytics?.mockInterviewTrend.length > 0 ? (
+                <div className="mb-8">
+                  <h3 className="text-md font-semibold text-white mb-4">Score Trend</h3>
+                  <div className="p-6 rounded-xl border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={analytics.mockInterviewTrend}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="name" stroke="#94a3b8" />
+                        <YAxis stroke="#94a3b8" domain={[0, 100]} />
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px' }}
+                          labelStyle={{ color: '#e2e8f0' }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="score"
+                          stroke="#4f9cf9"
+                          strokeWidth={3}
+                          dot={{ fill: '#4f9cf9', r: 5 }}
+                          activeDot={{ r: 7 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              ) : null}
+
+              {interviews.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ backgroundColor: 'rgba(0,255,136,0.05)' }} className="border-b border-slate-700">
+                        <th className="px-4 py-3 text-left font-semibold text-slate-300">Topic</th>
+                        <th className="px-4 py-3 text-left font-semibold text-slate-300">Difficulty</th>
+                        <th className="px-4 py-3 text-left font-semibold text-slate-300">Score</th>
+                        <th className="px-4 py-3 text-left font-semibold text-slate-300">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {interviews.map((interview, i) => (
+                        <tr key={i} className="border-b border-slate-700 hover:bg-slate-900/50 transition-colors">
+                          <td className="px-4 py-3 text-white">{interview.topic}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-semibold ${interview.difficulty === 'Easy' ? 'bg-green-500/20 text-green-400' : interview.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                              {interview.difficulty}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="font-bold" style={{ color: getScoreColor(interview.percentage) }}>
+                              {interview.percentage}%
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-400">{new Date(interview.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-8 text-center rounded-lg border border-slate-700" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}>
+                  <p className="text-slate-400 mb-4">No mock interviews yet!</p>
+                  <button className="px-4 py-2 rounded-lg bg-green-500 text-slate-950 font-semibold hover:bg-green-400 transition-colors">
+                    Start Mock Interview
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tips Section */}
+          <div className="mt-12 p-6 md:p-8 rounded-xl border border-slate-700" style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.05), rgba(79,156,249,0.05))' }}>
+            <h3 className="font-syne font-bold text-lg md:text-xl text-white mb-4">💡 Pro Tips for Better Performance</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex gap-3">
+                <span className="text-green-400 text-lg">✓</span>
+                <div>
+                  <p className="font-semibold text-white text-sm mb-1">Focus on Weak Topics</p>
+                  <p className="text-slate-400 text-xs">Identify topics with low accuracy and practice more problems there</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="text-green-400 text-lg">✓</span>
+                <div>
+                  <p className="font-semibold text-white text-sm mb-1">Progressive Difficulty</p>
+                  <p className="text-slate-400 text-xs">Master easy problems before attempting hard ones</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="text-green-400 text-lg">✓</span>
+                <div>
+                  <p className="font-semibold text-white text-sm mb-1">Regular Practice</p>
+                  <p className="text-slate-400 text-xs">Solve at least 1-2 problems daily to maintain momentum</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <span className="text-green-400 text-lg">✓</span>
+                <div>
+                  <p className="font-semibold text-white text-sm mb-1">Mock Interviews</p>
+                  <p className="text-slate-400 text-xs">Take regular mock interviews to prepare for real ones</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
